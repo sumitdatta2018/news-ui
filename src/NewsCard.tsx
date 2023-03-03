@@ -5,7 +5,6 @@ import CardMedia from '@mui/material/CardMedia';
 import Grid from '@mui/material/Grid';
 import Typography from '@mui/material/Typography';
 import React, { useContext, useEffect, useState } from 'react';
-import { resolve } from 'path/win32';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import ShareIcon from '@mui/icons-material/Share';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -15,6 +14,7 @@ import Collapse from '@mui/material/Collapse';
 import Stack from '@mui/material/Stack';
 import Divider from '@mui/material/Divider';
 import { CardActionArea } from '@mui/material';
+import ReadMoreIcon from '@mui/icons-material/ReadMore';
 
 interface ExpandMoreProps extends IconButtonProps {
     expand: boolean;
@@ -43,7 +43,6 @@ export default function NewsFeedCard({ unit, keyword, interval }: NewsFeedCardPr
     const initialState: NewsFeed = {
         data: [],
         meta: {}
-
     }
     const [newsFeedRes, setNewsFeed] = useState<NewsFeed>(initialState);
     useEffect(() => {
@@ -53,7 +52,9 @@ export default function NewsFeedCard({ unit, keyword, interval }: NewsFeedCardPr
             headers: { 'Accept': 'application/vnd.api+json' }
         };
         if (keyword != null && keyword) {
-            fetch("http://localhost:8080/v1/news-feed?searchKeyword=" + keyword + "&groupingInterval=" + unit + "&groupingDuration=" + interval, productRequestOptions)
+            var apiBaseUrl = process.env.REACT_APP_API_BASE_URL as string
+            console.log("base url: "+apiBaseUrl)
+            fetch(apiBaseUrl+"/v1/news-feed?searchKeyword=" + keyword + "&groupingInterval=" + unit + "&groupingDuration=" + interval, productRequestOptions)
                 .then(res => res.json())
                 .then(
                     (result) => {
@@ -90,9 +91,8 @@ export default function NewsFeedCard({ unit, keyword, interval }: NewsFeedCardPr
 
                             {bucket.attributes?.articles && bucket.attributes?.articles.map((article, index) => {
                                 return (
-                                    <Grid item xs={3} mt={1}>
+                                    <Grid item xs={4} mt={1}>
                                         <Card sx={{ maxWidth: 345, zIndex: 20000 }}>
-                                            <CardActionArea href={article.url ?? ""}>
                                             <CardMedia
                                                 component="img"
                                                 image={article.urlToImage}
@@ -100,18 +100,23 @@ export default function NewsFeedCard({ unit, keyword, interval }: NewsFeedCardPr
                                                 object-fit="cover"
                                                 height={300}
                                             />
-                                            <CardContent style={{ maxHeight: 100, overflow: 'auto', minHeight: 100 }} >
+                                            <CardContent style={{ maxHeight: 60, overflow: 'auto', minHeight: 60 }} >
                                                 <Typography style={{ textAlign: 'start' }} gutterBottom variant="body1" component="div">
                                                     {article.title}
                                                 </Typography>
                                             </CardContent>
-                                            <CardActions disableSpacing>
-                                                <IconButton aria-label="add to favorites">
-                                                    <FavoriteIcon />
-                                                </IconButton>
-                                                <IconButton aria-label="share">
-                                                    <ShareIcon />
-                                                </IconButton>
+                                            <CardActions disableSpacing >
+                                                {!expanded ? <CardContent>
+                                                    <IconButton>
+                                                        <ReadMoreIcon onClick={() => window.open(article.url, '_blank')} />
+                                                    </IconButton>
+                                                    <IconButton aria-label="add to favorites">
+                                                        <FavoriteIcon />
+                                                    </IconButton>
+                                                    <IconButton aria-label="share">
+                                                        <ShareIcon />
+                                                    </IconButton>
+                                                </CardContent> : null}
                                                 <ExpandMore
                                                     expand={expanded}
                                                     onClick={handleExpandClick}
@@ -121,20 +126,28 @@ export default function NewsFeedCard({ unit, keyword, interval }: NewsFeedCardPr
                                                     <ExpandMoreIcon />
                                                 </ExpandMore>
                                             </CardActions>
-                                            <Collapse in={expanded} timeout="auto" unmountOnExit>
+                                            <Collapse in={expanded} timeout="auto" unmountOnExit style={{ maxHeight: 400, overflow: 'auto', minHeight: 400 }}>
                                                 <CardContent>
-                                                    <Typography style={{ textAlign: 'start' }} paragraph>Content:</Typography>
+                                                    <Typography style={{ textAlign: 'start' }} variant="h5">Content:</Typography>
                                                     <Typography style={{ textAlign: 'start' }} paragraph>
                                                         {article.content}
                                                     </Typography>
-                                                    <Typography style={{ textAlign: 'start' }} paragraph>Description:</Typography>
+                                                    <Typography style={{ textAlign: 'start' }} variant="h5">Description:</Typography>
                                                     <Typography style={{ textAlign: 'start' }}>
                                                         {article.description}
                                                     </Typography>
                                                     <Typography style={{ textAlign: 'start' }} paragraph>Publised At: {article.publishedAt}</Typography>
+                                                    <IconButton>
+                                                        <ReadMoreIcon onClick={() => window.open(article.url, '_blank')} />
+                                                    </IconButton>
+                                                    <IconButton aria-label="add to favorites">
+                                                        <FavoriteIcon />
+                                                    </IconButton>
+                                                    <IconButton aria-label="share">
+                                                        <ShareIcon />
+                                                    </IconButton>
                                                 </CardContent>
                                             </Collapse>
-                                            </CardActionArea>
                                         </Card>
                                     </Grid>
                                 )
